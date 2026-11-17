@@ -1,4 +1,4 @@
-name: Flutter CI
+name: Flutter quality and Android debug build
 on:
   push:
     branches: [main]
@@ -6,13 +6,27 @@ on:
 jobs:
   analyze-test-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          cache: true
-      - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
-      - run: flutter build apk --debug
+      - name: Generate native platform scaffolds
+        run: flutter create --platforms=android,ios --project-name game_006_jigsaw_puzzle_world .
+      - name: Resolve packages
+        run: flutter pub get
+      - name: Static analysis
+        run: flutter analyze --no-fatal-infos
+      - name: Unit and widget tests
+        run: flutter test --reporter expanded
+      - name: Android debug APK
+        run: flutter build apk --debug
+      - name: Publish debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-006-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
