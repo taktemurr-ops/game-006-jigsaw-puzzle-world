@@ -1,33 +1,58 @@
-# Game 006 — Jigsaw Puzzle World
+# Yapboz Dünyası · Jigsaw Puzzle World
 
-**Game Studio 100 / Flutter / Android + iOS**
+**Game Studio 100 · #006 · Bulmaca ve Zekâ** · Flutter · Android · iOS · Web
 
-Expanded the existing repo's sliding puzzle prototype with **picture reconstruction** mechanics. The original `SlidingPuzzle` API is kept for existing tests.
+Sonsuz özgün resim, parça parça birleştir!
 
-## Implemented source features
-- Original procedural art themes (mountains, ocean, garden, sunset): no externally licensed images needed.
-- 2×2–6×6 responsive picture puzzles; drag two pieces to swap or tap sequentially.
-- Deterministic seed, daily challenge (UTC), classic, timed, zen, and original sliding mode.
-- Undo, free hint, optional complete artwork preview, pause, restart, stopwatch, time limit.
-- Local autosave and restore, corrupted-save safety, best scores, settings/data deletion.
-- Turkish/English/Arabic user copy, RTL, voiceover labels, optional number overlay and reduced-motion preference.
-- Pure Dart rules engine, storage/widget tests, Android CI build, macOS iOS compile workflow.
+## Oyun
 
-## Run and verify
+Kodla üretilen sonsuz özgün resimlerden yapboz.
+
+- **3 bulmaca tipi:** değiştir (iki parçayı yer değiştir), döndür (parçaları çevir), kaydır (boşluklu kaydırma bulmacası)
+- 3×3'ten 8×8'e kadar parça
+- **Güçlendiriciler:** otomatik yerleştir, resme göz at (3 sn), geri al
+- **Modlar:** Macera, Sonsuz, Zamana karşı, Zen, Günün/Haftanın resmi, 150 meydan okuma
+- Doğru yerdeki parçalar yeşil vurgulanır; kaydırma bulmacaları her zaman çözülebilir (parite kontrolü)
+
+## Bütün oyunlarda ortak sistemler
+
+| Sistem | Durum | Dosya |
+|---|---|---|
+| 50.000 bölüm + sonsuz bölüm (seed ile deterministik, her bölüm çözülebilirlik testinden geçer) | ✅ | `lib/core/level_plan.dart`, `lib/game/rules.dart` |
+| 500 dünya, her 10 bölümde zorluk, her 50 bölümde yeni mekanik kombinasyonu, her 100 bölümde tema, her 1000 bölümde özel ödül | ✅ | `lib/core/level_plan.dart` |
+| Oyuncu performansına göre zorluk ayarı | ✅ | `AdaptiveDifficulty` |
+| Modlar: Macera, Sonsuz, Zamana karşı, Zen, Günün bölümü, Haftanın bölümü, 150 meydan okuma | ✅ | `lib/app/screens/home.dart` |
+| Günlük giriş ödülü (7 günlük döngü), seri, şans çarkı, günlük sürpriz, geri dönen oyuncu ödülü | ✅ | `lib/core/daily.dart` |
+| 4 günlük + 7 haftalık görev (tarihe göre otomatik yenilenir), günlük rekor, haftalık kişisel hedef | ✅ | `lib/core/missions.dart` |
+| 200+ başarım (50+ gizli) | ✅ | `lib/core/achievements.dart` |
+| Oyuncu seviyesi 1-500, 5 kademe (Başlangıç → Efsane) | ✅ | `lib/core/progression.dart` |
+| 236 koleksiyon parçası: tema, görünüm, rozet, avatar, çerçeve, efekt | ✅ | `lib/core/collection.dart` |
+| İnternetsiz oyun, otomatik kayıt, 3 yedek + yarım kalan yazmayı kurtarma, checksum, sürüm geçişi, yedek kodu ile dışa/içe aktarma | ✅ | `lib/core/save_store.dart`, `lib/core/save_data.dart` |
+| Uygulama kapanınca bölüme kaldığı yerden devam | ✅ | `resume` |
+| Saat manipülasyonu koruması | ✅ | `lib/core/clock.dart` |
+| Çökme döngüsü algılama → güvenli mod, hata günlüğü, performans ölçümü | ✅ | `lib/core/telemetry.dart` |
+| Acil durum yapılandırması (reklam/satın alma/analitik kapatma) | ✅ | `assets/config/emergency.json` |
+| İzinli, çevrimdışı kuyruklu analitik | ✅ | `AnalyticsQueue` |
+| AdMob: ödüllü + geçiş reklamı, sıklık sınırı, UMP/GDPR rızası, yaş kontrolü | ✅ (test kimlikleri) | `lib/app/services/ads_mobile.dart` |
+| Satın alma: reklamsız, premium, altın, ipucu, başlangıç paketi; doğrulama, geri yükleme, iade, tekrar koruması | ✅ (ürünler mağazada açılmalı) | `lib/core/monetization.dart` |
+| 5 dil (TR, EN, DE, ES, FR), renk körü modu, animasyon azaltma, yazı boyutu, solak düzen, titreşim | ✅ | `lib/core/strings.dart`, Ayarlar |
+| Özgün ikon, splash, ses efektleri, müzik, mağaza görselleri (kodla üretilir) | ✅ | `tool/generate_assets.py` |
+| CI: analiz, testler, APK + AAB, Web; iOS (manuel); haftalık 10.000 bölüm + 24 ay simülasyonu | ✅ | `.github/workflows/` |
+
+## Çalıştırma
+
 ```bash
-flutter create --platforms=android,ios --project-name game_006_jigsaw_puzzle_world .
+pip install pillow && python tool/generate_assets.py   # ikon, splash, ses, mağaza görselleri
+flutter create --platforms=android,ios,web --org com.gamestudio100 --project-name game_006_jigsaw_puzzle_world .
+python tool/patch_platforms.py                         # AdMob id, izinler, uygulama adı
 flutter pub get
-flutter analyze --no-fatal-infos
+dart run flutter_launcher_icons && dart run flutter_native_splash:create
 flutter test
-flutter build apk --debug
-# on a macOS environment:
-flutter build ios --debug --no-codesign
+flutter run                                            # veya: flutter run -d chrome
 ```
 
-## Release gates not claimed complete
-- This patch is not a signed store-ready release. Real Android/iOS physical-device, crash, accessibility, battery, store screenshots and policy review are still required.
-- No third-party analytics, advertisements or payments are enabled, and no purchase grants are simulated.
-- `sound` preference records a user choice but audio output requires reviewed, licensed effects before enabling.
-- GitHub CI and mobile builds must succeed before declaring release readiness.
+Uzun testler: `flutter test --dart-define=LONG=true test/long_run_test.dart test/soak_test.dart`
 
-This directory is a source overlay for the **existing** `taktemurr-ops/game-006-jigsaw-puzzle-world` repo. Only files in this overlay need replacement; preserve unrelated repo docs/tests.
+## Yayın öncesi yapılacaklar
+
+`docs/RELEASE.md` dosyasına bak: AdMob kimlikleri, mağaza ürünleri, imzalama anahtarları, gizlilik politikası adresi.
